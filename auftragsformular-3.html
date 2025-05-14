@@ -1,0 +1,284 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Auftragsformular</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Barlow', sans-serif;
+      padding: 20px;
+    }
+
+    .auftrag-container {
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    fieldset {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 16px;
+      background-color: #f9f9f9;
+    }
+
+    legend {
+      font-weight: bold;
+      font-size: 1.1em;
+      margin-bottom: 8px;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 500;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 6px;
+      margin-top: 4px;
+      border: 1px solid #aaa;
+      border-radius: 4px;
+    }
+
+    button {
+      background-color: #4c7354; /* Green from 'Senden' */
+      font-weight: bold;
+    
+      padding: 10px 16px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .delete-btn {
+      background-color: #b33974;  /* Pink from 'Start' */
+      color: white;
+      font-weight: bold;
+      border: none;
+    
+      display: inline-block;
+      margin-bottom: 8px;
+      background: #eee;
+      border: none;
+      font-size: 1.1em;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #c00;
+    }
+
+    .delete-btn:hover {
+      background: #ddd;
+      color: #900;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Auftragsformular</h2>
+
+  <div id="auftragWrapper"></div>
+
+  <button onclick="addAuftrag()">+ Printauftrag hinzufügen</button>
+
+  <script>
+    let auftragIndex = 0;
+
+    const formatsByProduct = {
+      "Broschüre/Programmheft": ["DIN A4 (210 x 297 mm)", "DIN A5 (148 x 210 mm)", "Quadratisch (210 x 210 mm)"],
+      "Flyer": ["DIN Lang (99 x 210 mm)", "DIN A6 (105 x 148 mm)", "DIN A5 (148 x 210 mm)", "Quadratisch (148 x 148 mm)"],
+      "Visitenkarte": ["85 x 55 mm", "90 x 50 mm"],
+      "Plakat": ["A1 (594 x 841 mm)", "A2 (420 x 594 mm)", "A3 (297 x 420 mm)", "A4 (210 x 297 mm)"],
+      "Schild": ["200 x 300 mm", "300 x 400 mm", "500 x 700 mm"],
+      "Stempel": ["47 x 18 mm", "58 x 22 mm", "70 x 25 mm"],
+      "Briefbogen": ["DIN A4 (210 x 297 mm)"],
+      "CI Manual": [],
+      "Druck auf Kleidung": [],
+      "Logogestaltung": [],
+      "Pressemappe": ["DIN A4 (210 x 297 mm)", "DIN A5 (148 x 210 mm)"],
+      "Tourpass": ["85 x 54 mm"],
+      "Einzelanzeige": [],
+      "Sammelanzeige": [],
+      "Einzelplakat": [],
+      "Sammelplakat": [],
+      "Faltblatt": ["DIN A4 gefalzt auf DIN Lang", "DIN A5 gefalzt auf DIN A6"],
+      "Sammelfaltblatt": [],
+      "Geländeplan": []
+    };
+
+    function addAuftrag() {
+      auftragIndex++;
+      const wrapper = document.getElementById("auftragWrapper");
+      const div = document.createElement("div");
+      div.classList.add("auftrag-container");
+      div.innerHTML = `
+        <fieldset>
+          <legend>Printauftrag ${auftragIndex}</legend>
+
+          <label>Produkt:
+            <select name="auftragArt${auftragIndex}" required onchange="toggleFormate(this, ${auftragIndex}); toggleFaltblattExtras(this, ${auftragIndex})">
+              <option value="" disabled selected hidden>Bitte wähle</option>
+              ${Object.keys(formatsByProduct).map(p => `<option value="${p}">${p}</option>`).join('')}
+              <option value="Sonstiges">Sonstiges</option>
+            </select>
+          </label>
+          <div id="auftragSonstigesWrapper${auftragIndex}" class="hidden">
+            <label>Sonstiger Auftrag:
+              <input type="text" name="auftragSonstiges${auftragIndex}" />
+            </label>
+          </div>
+
+          <div id="formatOptions${auftragIndex}" class="hidden">
+            <label>Format:
+              <select name="format${auftragIndex}" required onchange="checkFormatSonstiges(this, ${auftragIndex})">
+                <option value="" disabled selected hidden>Bitte wähle</option>
+              </select>
+            </label>
+            <div id="formatSonstigesWrapper${auftragIndex}" class="hidden">
+              <label>Sonstiges Format:
+                <input type="text" name="formatSonstiges${auftragIndex}" />
+              </label>
+            </div>
+          </div>
+
+          <label>Art der Dienstleistung:
+            <select name="dienstleistung${auftragIndex}" required>
+              <option value="" disabled selected hidden>Bitte wähle</option>
+              <option value="Neukonzeption Bild">Neukonzeption & Gestaltung mit dominantem Bildmaterial</option>
+              <option value="Neukonzeption ohne">Neukonzeption & Gestaltung ohne Bildmaterial</option>
+              <option value="Formatanpassung">Formatanpassung</option>
+              <option value="Bildbearbeitung">Bildbearbeitung</option>
+              <option value="Retouche">Retouche</option>
+              <option value="Credit">Crediteinbindung</option>
+              <option value="Datei">Dateiumwandlung</option>
+              <option value="Sonstige">Sonstige</option>
+            </select>
+          </label>
+
+          <label>Druckerei:
+            <select name="druckerei${auftragIndex}">
+              <option value="" disabled selected hidden>Bitte wähle</option>
+              <option value="Keine">Keine</option>
+              <option value="Selbst">Selbst gedruckt</option>
+              <option value="Flyeralarm">Flyeralarm</option>
+              <option value="GalleryPrint">GalleryPrint</option>
+              <option value="Penguin">Penguin</option>
+              <option value="WMD">WirMachenDruck</option>
+              <option value="Sonstige">Sonstige</option>
+            </select>
+          </label>
+
+          <label>Deadline:
+            <input type="date" name="deadline${auftragIndex}" lang="de" value="" placeholder="TT-MM-JJJJ" />
+          </label>
+
+          <label>Weitere Informationen:
+            <textarea name="info${auftragIndex}"></textarea>
+          </label>
+        <div style="text-align:right; margin-top: 16px;"><button class="delete-btn" onclick="deleteAuftrag(this)">🗑️ Auftrag entfernen</button></div>
+<div id="faltblattExtras${auftragIndex}" class="hidden" style="margin-top: 20px;">
+  <h3>Faltblatt-Optionen</h3>
+
+  <label>Seitenanzahl des Faltblatts:</label>
+  <div>
+    <label><input type="checkbox" name="seitenanzahl${auftragIndex}" value="4 Seiten"> 4 Seiten</label>
+    <label><input type="checkbox" name="seitenanzahl${auftragIndex}" value="6 Seiten"> 6 Seiten</label>
+    <label><input type="checkbox" name="seitenanzahl${auftragIndex}" value="8 Seiten"> 8 Seiten</label>
+    <label><input type="checkbox" name="seitenanzahl${auftragIndex}" value="10 Seiten"> 10 Seiten</label>
+    <label><input type="checkbox" name="seitenanzahl${auftragIndex}" value="12 Seiten"> 12 Seiten</label>
+    <label><input type="checkbox" name="seitenanzahl${auftragIndex}" value="16 Seiten"> 16 Seiten</label>
+    <label><input type="checkbox" name="seitenanzahl${auftragIndex}" value="20 Seiten"> 20 Seiten</label>
+    <label><input type="checkbox" name="seitenanzahl${auftragIndex}" value="24 Seiten"> 24 Seiten</label>
+    <label><input type="checkbox" name="seitenanzahl${auftragIndex}" value="Sonstiges"> Sonstiges Faltblatt</label>
+  </div>
+
+  <label>Falzart des Faltblatts:</label>
+  <div>
+    <label><input type="checkbox" name="falzart${auftragIndex}" value="Einbruchfalz"> Einbruchfalz (4 Seiten)</label>
+    <label><input type="checkbox" name="falzart${auftragIndex}" value="Zickzackfalz"> Zickzackfalz (6–10 Seiten)</label>
+    <label><input type="checkbox" name="falzart${auftragIndex}" value="Kreuzbruchfalz"> Kreuzbruchfalz</label>
+    <label><input type="checkbox" name="falzart${auftragIndex}" value="Pyramidenfalz"> Pyramidenfalz</label>
+    <label><input type="checkbox" name="falzart${auftragIndex}" value="Wickelfalz"> Wickelfalz (6–16 Seiten)</label>
+    <label><input type="checkbox" name="falzart${auftragIndex}" value="Altarfalz"> Altarfalz / Fensterfalz (6 oder 8 Seiten)</label>
+    <label><input type="checkbox" name="falzart${auftragIndex}" value="Leporello"> Leporello</label>
+    <label><input type="checkbox" name="falzart${auftragIndex}" value="Quadratfalz"> Quadratfalz</label>
+    <label><input type="checkbox" name="falzart${auftragIndex}" value="Sonstiges"> Sonstiges Faltblatt</label>
+  </div>
+
+  <label>Faltblattformate (geschlossenes Endformat):</label>
+  <div>
+    <label><input type="checkbox" name="formatfalt${auftragIndex}" value="DIN A7"> DIN A7 (74 x 105 mm)</label>
+    <label><input type="checkbox" name="formatfalt${auftragIndex}" value="DIN A6"> DIN A6 (105 x 148 mm)</label>
+    <label><input type="checkbox" name="formatfalt${auftragIndex}" value="DIN A5"> DIN A5 (148 x 210 mm)</label>
+    <label><input type="checkbox" name="formatfalt${auftragIndex}" value="DIN A4"> DIN A4 (210 x 297 mm)</label>
+    <label><input type="checkbox" name="formatfalt${auftragIndex}" value="DIN lang"> DIN lang (99 x 210 mm)</label>
+    <label><input type="checkbox" name="formatfalt${auftragIndex}" value="DIN lang plus"> DIN lang plus (105 x 210 mm)</label>
+    <label><input type="checkbox" name="formatfalt${auftragIndex}" value="Quadrat klein"> Quadrat klein (98 x 98 mm)</label>
+    <label><input type="checkbox" name="formatfalt${auftragIndex}" value="Quadrat groß"> Quadrat groß (148 x 148 mm)</label>
+    <label><input type="checkbox" name="formatfalt${auftragIndex}" value="Quadrat XL"> Quadrat XL (210 x 210 mm)</label>
+    <label><input type="checkbox" name="formatfalt${auftragIndex}" value="Sonstiges"> Sonstiges Faltblatt</label>
+  </div>
+</div>
+</fieldset>
+      `;
+      wrapper.appendChild(div);
+    }
+
+    function deleteAuftrag(button) {
+      const container = button.closest(".auftrag-container");
+      if (container) container.remove();
+    }
+
+    function toggleFormate(select, index) {
+      const selected = select.value;
+      const formatContainer = document.getElementById(`formatOptions${index}`);
+      const formatSelect = formatContainer.querySelector('select');
+      const sonstigesWrapper = document.getElementById(`auftragSonstigesWrapper${index}`);
+
+      sonstigesWrapper.classList.toggle("hidden", selected !== "Sonstiges");
+
+      if (formatsByProduct[selected]) {
+        formatSelect.innerHTML = '<option value="" disabled selected hidden>Bitte wähle</option>' +
+          formatsByProduct[selected].map(f => `<option value="${f}">${f}</option>`).join('') +
+          '<option value="Sonstiges">Sonstiges</option>';
+        formatContainer.classList.remove("hidden");
+      } else {
+        formatSelect.innerHTML = '';
+        formatContainer.classList.add("hidden");
+      }
+    }
+
+    function checkFormatSonstiges(select, index) {
+      const wrapper = document.getElementById(`formatSonstigesWrapper${index}`);
+      wrapper.classList.toggle("hidden", select.value !== "Sonstiges");
+    }
+  
+    function toggleFaltblattExtras(select, index) {
+      const value = select.value.toLowerCase();
+      const section = document.getElementById(`faltblattExtras${index}`);
+      if (value.includes("faltblatt")) {
+        section.classList.remove("hidden");
+      } else {
+        section.classList.add("hidden");
+      }
+    }
+    </script>
+
+
+</body>
+</html>
