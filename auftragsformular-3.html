@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Auftragsformular</title>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow&display=swap" rel="stylesheet" />
   <style>
     body {
       font-family: 'Barlow', sans-serif;
-      background-color: #f9f9f9;
-      color: #333;
       margin: 0;
       padding: 20px;
+      background-color: #f9f9f9;
     }
 
     form {
@@ -46,7 +46,6 @@
       margin-bottom: 15px;
       border: 1px solid #ccc;
       border-radius: 6px;
-      box-sizing: border-box;
       font-size: 1em;
       appearance: none;
       background-color: white;
@@ -54,11 +53,6 @@
       background-repeat: no-repeat;
       background-position: right 12px center;
       background-size: 10px;
-    }
-
-    input[type="date"]::-webkit-calendar-picker-indicator {
-      opacity: 0.6;
-      cursor: pointer;
     }
 
     button.add-btn {
@@ -96,18 +90,6 @@
     .hidden {
       display: none;
     }
-
-    @media (max-width: 600px) {
-      form {
-        padding: 20px;
-      }
-
-      button.add-btn,
-      button.delete-btn {
-        width: 100%;
-        margin-top: 12px;
-      }
-    }
   </style>
 </head>
 <body>
@@ -141,7 +123,7 @@
           <label>Art der Dienstleistung*:
             <select name="dienstleistung${auftragIndex}" required>
               <option value="" disabled selected hidden>Bitte wähle</option>
-              <option value="Neukonzeption mit Bild">Neukonzeption mit dominantem Bildmaterial</option>
+              <option value="Neukonzeption mit Bild">Neukonzeption mit Bildmaterial</option>
               <option value="Neukonzeption ohne Bild">Neukonzeption ohne Bildmaterial</option>
               <option value="Formatanpassung">Formatanpassung</option>
               <option value="Retouche">Retouche</option>
@@ -166,21 +148,35 @@
             <textarea name="info${auftragIndex}" rows="3"></textarea>
           </label>
           <label>Deadline:
-            <input type="date" name="deadline${auftragIndex}" value="" placeholder="TT-MM-JJJJ">
+            <input type="date" name="deadline${auftragIndex}" value="" placeholder="TT-MM-JJJJ" />
           </label>
           <div style="text-align:right;"><button type="button" class="delete-btn" onclick="deleteAuftrag(this)">🗑️</button></div>
         </fieldset>
       `;
       wrapper.appendChild(div);
       auftragIndex++;
+      updateHeight(); // <-- passt Höhe nach jedem Auftrag an
     }
 
     function deleteAuftrag(btn) {
       btn.closest(".auftrag-container").remove();
+      updateHeight();
     }
 
-    // Automatisch ein Feld beim Laden anzeigen
+    // initial ein Feld
     addAuftrag();
+
+    // automatische iFrame-Höhenübertragung
+    function updateHeight() {
+      const height = document.body.scrollHeight;
+      parent.postMessage(height, '*');
+    }
+
+    window.addEventListener('load', updateHeight);
+    window.addEventListener('resize', updateHeight);
+
+    const observer = new MutationObserver(updateHeight);
+    observer.observe(document.body, { childList: true, subtree: true });
   </script>
 </body>
 </html>
