@@ -1,182 +1,240 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <title>Auftragsformular</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://fonts.googleapis.com/css2?family=Barlow&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8">
+  <title>Print-Anfrage</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Barlow', sans-serif;
       margin: 0;
       padding: 20px;
-      background-color: #f9f9f9;
+      font-family: 'Barlow', sans-serif;
+      background: #f9f9f9;
+      color: #333;
     }
-
     form {
-      max-width: 850px;
+      max-width: 900px;
       margin: 0 auto;
-      background-color: #fff;
-      padding: 30px;
+      background: #fff;
+      padding: 24px;
       border-radius: 8px;
-      box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 0 8px rgba(0,0,0,0.05);
     }
-
-    fieldset {
+    .auftrag {
       border: 1px solid #ddd;
-      padding: 20px;
+      border-radius: 6px;
+      padding: 16px;
       margin-bottom: 20px;
-      border-radius: 8px;
+      position: relative;
     }
-
+    .auftrag h3 {
+      margin: 0 0 12px;
+      font-size: 1.1em;
+      font-weight: 600;
+    }
     label {
       display: block;
       margin-bottom: 8px;
       font-weight: 500;
       font-size: 0.95em;
     }
-
-    input[type="text"],
-    input[type="date"],
-    select,
-    textarea {
+    select, input[type="date"], input[type="text"], textarea {
       width: 100%;
-      padding: 8px 12px;
+      padding: 8px 10px;
       margin-top: 4px;
-      margin-bottom: 15px;
+      margin-bottom: 14px;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      border-radius: 4px;
       font-size: 1em;
       appearance: none;
-      background-color: white;
-      background-image: url("data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 10 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 2.5 L5 7.5 L10 2.5' fill='none' stroke='%23333' stroke-width='1.5'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
+      background: #fff url("data:image/svg+xml;charset=UTF-8,%3Csvg width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M0 2.5 L5 7.5 L10 2.5' stroke='%23666' stroke-width='1.2' fill='none'/%3E%3C/svg%3E") no-repeat right 12px center;
       background-size: 10px;
     }
-
-    button.add-btn {
-      background-color: #4c7354;
-      color: #fff;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      opacity: 0.6;
       cursor: pointer;
-      font-size: 1em;
+    }
+    textarea { resize: vertical; }
+    .hidden { display: none; }
+    .actions {
+      text-align: right;
+      margin-top: 8px;
+    }
+    button.add {
+      display: inline-block;
+      background: #4c7354;
+      color: #fff;
       font-weight: bold;
-      transition: background-color 0.2s ease;
-    }
-
-    button.add-btn:hover {
-      background-color: #3a5e43;
-    }
-
-    button.delete-btn {
-      background-color: transparent;
-      color: #e83e8c;
-      padding: 6px 8px;
+      padding: 10px 18px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      font-size: 1.1em;
-      font-weight: bold;
-      transition: background-color 0.2s ease;
+      transition: background 0.2s;
     }
-
-    button.delete-btn:hover {
-      background-color: #f3d0e0;
+    button.add:hover { background: #3a5e43; }
+    button.del {
+      background: transparent;
+      border: none;
+      padding: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+      color: #e83e8c;
+      border-radius: 4px;
     }
-
-    .hidden {
-      display: none;
+    button.del:hover { background: #f3d0e0; }
+    button.del svg { width: 20px; height: 20px; vertical-align: middle; }
+    @media (max-width: 600px) {
+      form { padding: 16px; }
+      button.add, button.del { width: 100%; margin-top: 12px; }
     }
   </style>
 </head>
 <body>
-  <form>
-    <div id="auftragWrapper"></div>
-    <button type="button" class="add-btn" onclick="addAuftrag()">+ Füge mehr hinzu</button>
+  <form id="anfrageForm">
+    <div id="container"></div>
+    <button type="button" class="add" onclick="addBlock()">+ Füge mehr hinzu</button>
   </form>
 
   <script>
-    let auftragIndex = 0;
-
-    function addAuftrag() {
-      const wrapper = document.getElementById("auftragWrapper");
-      const div = document.createElement("div");
-      div.className = "auftrag-container";
+    let idx = 0;
+    function addBlock() {
+      idx++;
+      const div = document.createElement('div');
+      div.className = 'auftrag';
       div.innerHTML = `
-        <fieldset>
-          <label>Produkt*:
-            <select name="produkt${auftragIndex}" required>
-              <option value="" disabled selected hidden>Bitte wähle</option>
-              <option value="Einzelplakat">Einzelplakat</option>
-              <option value="Sammelplakat">Sammelplakat</option>
-              <option value="Einzelanzeige">Einzelanzeige</option>
-              <option value="Sammelanzeige">Sammelanzeige</option>
-              <option value="Flyer">Flyer</option>
-              <option value="Faltblatt">Faltblatt</option>
-              <option value="Visitenkarte">Visitenkarte</option>
-              <option value="Sonstige">Sonstige</option>
-            </select>
+        <h3>Print-Anfrage ${idx}</h3>
+        <label>Produkt*:
+          <select name="produkt${idx}" onchange="toggleSonstiges(this, ${idx})" required>
+            <option value="" disabled selected hidden>Bitte wähle</option>
+            <option>Einzelplakat</option>
+            <option>Sammelplakat</option>
+            <option>Einzelanzeige</option>
+            <option>Sammelanzeige</option>
+            <option>Flyer</option>
+            <option>Sammelflyer</option>
+            <option>Faltblatt</option>
+            <option>Sammelfaltblatt</option>
+            <option>Geländeplan</option>
+            <option>Schild</option>
+            <option>Pressemappe</option>
+            <option>Broschüre/Programmheft</option>
+            <option>Tourpass</option>
+            <option>Visitenkarte</option>
+            <option>Logogestaltung</option>
+            <option>Briefbogen</option>
+            <option>CI Manual</option>
+            <option>Stempel</option>
+            <option>Druck auf Kleidung</option>
+            <option>Sonstige</option>
+          </select>
+        </label>
+        <div id="prodSonst${idx}" class="hidden">
+          <label>Sonstiges Produkt:
+            <input type="text" name="produktSonst${idx}">
           </label>
-          <label>Art der Dienstleistung*:
-            <select name="dienstleistung${auftragIndex}" required>
-              <option value="" disabled selected hidden>Bitte wähle</option>
-              <option value="Neukonzeption mit Bild">Neukonzeption mit Bildmaterial</option>
-              <option value="Neukonzeption ohne Bild">Neukonzeption ohne Bildmaterial</option>
-              <option value="Formatanpassung">Formatanpassung</option>
-              <option value="Retouche">Retouche</option>
-              <option value="Bildbearbeitung">Bildbearbeitung</option>
-              <option value="Dateiumwandlung">Dateiumwandlung</option>
-              <option value="Sonstige">Sonstige</option>
-            </select>
+        </div>
+        <div id="formatBlock${idx}" class="hidden">
+          <label>Format*:
+            <select name="format${idx}" onchange="toggleFormatSonst(this, ${idx})" required></select>
           </label>
-          <label>Druckerei:
-            <select name="druckerei${auftragIndex}">
-              <option value="" disabled selected hidden>Bitte wähle</option>
-              <option value="Flyeralarm">Flyeralarm</option>
-              <option value="GalleryPrint">GalleryPrint</option>
-              <option value="Penguin">Penguin</option>
-              <option value="WirMachenDruck">WirMachenDruck</option>
-              <option value="Selbst">Selbst gedruckt</option>
-              <option value="Keine">Keine</option>
-              <option value="Sonstige">Sonstige</option>
-            </select>
-          </label>
-          <label>Weitere Informationen:
-            <textarea name="info${auftragIndex}" rows="3"></textarea>
-          </label>
-          <label>Deadline:
-            <input type="date" name="deadline${auftragIndex}" value="" placeholder="TT-MM-JJJJ" />
-          </label>
-          <div style="text-align:right;"><button type="button" class="delete-btn" onclick="deleteAuftrag(this)">🗑️</button></div>
-        </fieldset>
+          <div id="formatSonst${idx}" class="hidden">
+            <label>Sonstiges Format:
+              <input type="text" name="formatSonst${idx}">
+            </label>
+          </div>
+        </div>
+        <label>Art der Dienstleistung*:
+          <select name="dienst${idx}" required>
+            <option value="" disabled selected hidden>Bitte wähle</option>
+            <option>Neukonzeption & Gestaltung mit dominantem Bildmaterial</option>
+            <option>Neukonzeption & Gestaltung ohne Bildmaterial</option>
+            <option>Formatanpassung</option>
+            <option>Eindruck</option>
+            <option>Bildbearbeitung</option>
+            <option>Retouche</option>
+            <option>Crediteinbindung</option>
+            <option>Dateiumwandlung</option>
+            <option>Sonstige</option>
+          </select>
+        </label>
+        <label>Druckerei:
+          <select name="druckerei${idx}">
+            <option value="" disabled selected hidden>Bitte wähle</option>
+            <option>Keine</option>
+            <option>Selbst gedruckt</option>
+            <option>Flyeralarm</option>
+            <option>GalleryPrint</option>
+            <option>Penguin</option>
+            <option>WirMachenDruck</option>
+            <option>Sonstige</option>
+          </select>
+        </label>
+        <label>Deadline:
+          <input type="date" name="deadline${idx}">
+        </label>
+        <label>Weitere Informationen:
+          <textarea name="info${idx}" rows="3"></textarea>
+        </label>
+        <div class="actions">
+          <button type="button" class="del" onclick="this.closest('.auftrag').remove()"> 
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3 6h18v2H3V6zm2 3h14l-1.2 12H6.2L5 9zm5 2v8h2v-8H10zm4 0v8h2v-8h-2z"/>
+            </svg>
+          </button>
+        </div>
       `;
-      wrapper.appendChild(div);
-      auftragIndex++;
-      updateHeight(); // <-- passt Höhe nach jedem Auftrag an
+      document.getElementById('container').append(div);
+      updateFormats(idx);
+      postHeight();
     }
 
-    function deleteAuftrag(btn) {
-      btn.closest(".auftrag-container").remove();
-      updateHeight();
+    function toggleSonstiges(sel, i) {
+      const block = document.getElementById(`prodSonst${i}`);
+      block.classList.toggle('hidden', sel.value !== 'Sonstige');
+      updateFormats(i); postHeight();
     }
 
-    // initial ein Feld
-    addAuftrag();
-
-    // automatische iFrame-Höhenübertragung
-    function updateHeight() {
-      const height = document.body.scrollHeight;
-      parent.postMessage(height, '*');
+    function updateFormats(i) {
+      const prod = document.querySelector(`[name="produkt${i}"]`).value;
+      const sel = document.querySelector(`#formatBlock${i} select`);
+      const block = document.getElementById(`formatBlock${i}`);
+      const fm = {
+        'Einzelplakat': ['A1','A2','A3','A4'],
+        'Sammelplakat': ['A1','A2','A3'],
+        'Flyer': ['DIN Lang','DIN A6','DIN A5','Quadratisch'],
+        'Visitenkarte': ['85×55 mm','90×50 mm'],
+        'Faltblatt': ['DIN A4 gefalzt','DIN A5 gefalzt'],
+        // … weitere Zuordnungen …
+      };
+      if (fm[prod]) {
+        sel.innerHTML = `<option value="" disabled selected hidden>Bitte wähle</option>` +
+          fm[prod].map(z=>`<option>${z}</option>`).join('') +
+          `<option>Sonstige</option>`;
+        block.classList.remove('hidden');
+      } else {
+        block.classList.add('hidden');
+      }
+      postHeight();
     }
 
-    window.addEventListener('load', updateHeight);
-    window.addEventListener('resize', updateHeight);
+    function toggleFormatSonst(sel,i) {
+      const fblock = document.getElementById(`formatSonst${i}`);
+      fblock.classList.toggle('hidden', sel.value!=='Sonstige');
+      postHeight();
+    }
 
-    const observer = new MutationObserver(updateHeight);
-    observer.observe(document.body, { childList: true, subtree: true });
+    // auto-resize iFrame
+    function postHeight(){
+      const h = document.body.scrollHeight;
+      parent.postMessage(h,'*');
+    }
+    window.addEventListener('load',postHeight);
+    window.addEventListener('resize',postHeight);
+    new MutationObserver(postHeight).observe(document.body,{subtree:true,childList:true});
+
+    // initial
+    addBlock();
   </script>
 </body>
 </html>
